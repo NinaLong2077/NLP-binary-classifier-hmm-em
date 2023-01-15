@@ -1,5 +1,5 @@
 # NLP-tone-classifier
-A binary classifier on sequential data (50000 positive/negative IMDB reviews) using hidden Markov model (HMM) with Expectation Maximization algorithm.
+A binary classifier on sequential data (50,000 positive/negative IMDB reviews) using hidden Markov model (HMM) with Expectation Maximization algorithm.
 
 Steps:
 
