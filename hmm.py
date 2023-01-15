@@ -1,6 +1,5 @@
 
 # File: hmm.py
-# Purpose:  Starter code for building and training an HMM in CSC 246.
 
 import time 
 import argparse  
@@ -9,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from distutils.util import strtobool
 
-# A utility class for bundling together relevant parameters - you may modify if you like.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # num_states -- this should be an integer recording the number of hidden states
 #
@@ -22,29 +20,17 @@ from distutils.util import strtobool
 #
 # vocab_size -- this should be an integer recording the vocabulary size; 255 is a safe upper bound
 #
-# Note: You may want to add fields for expectations.
 
 # transitions: corresponds to the matrix A
 # emissions: corresponds to matrix B, defined as p(xn|zn, φ)
 
-'''
-references: 
-https://github.com/ducanhnguyen/hidden-markov-model/blob/master/src/hmmd.py
-https://web.stanford.edu/~jurafsky/slp3/A.pdf
-https://github.com/vrjkmr/hmm/blob/master/hmm.py
-'''
 
 class HMM:
     #__slots__ = ('pi', 'transitions', 'emissions', 'num_states', 'vocab_size')
     # The constructor should initalize all the model parameters.
-    # you may want to write a helper method to initialize the emission probabilities.
 
     def __init__(self, num_hidden_states, vocabulary):
 
-        '''
-        num_hidden_states:
-        vocab: unique vocabulary (unique chars)
-        '''
         self.num_hidden_states = num_hidden_states
         self.vocabulary_size = vocabulary.shape[0]
         self.vocabulary = vocabulary
@@ -54,6 +40,11 @@ class HMM:
 
 
     def fit(self, dataset, num_iter=10, criterion=0.00001):
+        '''
+        LL_list: list of log likelihood
+        old_avg_LL: avgerage LL over every reviews from last EM
+        '''
+        
         LL_list = []
         old_avg_LL = self.LL(dataset)
 
@@ -74,7 +65,6 @@ class HMM:
           LL_list.append(cur_avg_LL)
           print("iteration {}, log likelihood is {:.4f}".format(iter, cur_avg_LL))
           
-          #LL_diff = old_avg_LL - cur_avg_LL
           LL_diff =  cur_avg_LL - old_avg_LL
 
           old_avg_LL = cur_avg_LL
@@ -107,7 +97,6 @@ class HMM:
           pi = pi / pi.sum()
         
         elif initial_prob == 'uniform': #not real uniform, otherwise em wont really work
-          #print("dafafkaldfja")
           A = np.ones((self.num_hidden_states, self.num_hidden_states)) + np.random.rand(self.num_hidden_states, self.num_hidden_states)*2
           A = A / A.sum(axis = 1, keepdims = True)   
 
@@ -151,8 +140,6 @@ class HMM:
 
           alpha[:, t] = alpha[:, t-1] @ self.A * self.B[:, o_t]
 
-          # alpha[:, t] += np.sum(alpha[:, t-1] * self.A[:, :], axis=1)
-          # alpha[:, t] *= self.B[:, o_t] 
           c[t] += np.sum(alpha[:, t])
 
           #scale alpha[i, t]
@@ -175,7 +162,6 @@ class HMM:
       for t in range(num_observed_seq-2, -1, -1):
          o_t_plus_1 = self._get_observation_idx(observed_seq[t+1])
          beta[:,t] = self.A @ (self.B[:, o_t_plus_1] * beta[:, t+1])
-        #  beta[:, t] += np.sum(self.A * self.B[:, o_t_plus_1] * beta[:, t+1], axis=1)
          beta[:, t] *= c[t]
     
       return beta, c
@@ -196,8 +182,13 @@ class HMM:
         return -np.sum(np.log(c))
 
     # apply a single step of the em algorithm to the model on all the training data,
-    # which is most likely a python list of numpy matrices (one per sample).
+    # which is a python list of numpy matrices (one per sample).
     def em_step(self, dataset):
+        '''
+        Apply a single step of em algorithm to model on all the training data, 
+        which is a python list of numpy matrices (one per sample)
+        '''
+        
         example_count = 0
         
         accu_A = np.zeros((self.num_hidden_states, self.num_hidden_states))
@@ -219,8 +210,9 @@ class HMM:
         self.B = accu_B/example_count
         self.pi = accu_pi/example_count
             
-    #apply single step of the em on one training data
     def em_step_helper(self, observed_seq): 
+        #apply single step of the em on one training data
+
         
         #E step 
         alpha, c = self.compute_alpha(observed_seq)
